@@ -6,6 +6,18 @@ interface WeatherDisplayProps {
     error: string | null;
 }
 
+const getWindDirection = (degrees: number): string => {
+    if (degrees >= 337.5 || degrees < 22.5) return 'North';
+    if (degrees >= 22.5 && degrees < 67.5) return 'Northeast';
+    if (degrees >= 67.5 && degrees < 112.5) return 'East';
+    if (degrees >= 112.5 && degrees < 157.5) return 'Southeast';
+    if (degrees >= 157.5 && degrees < 202.5) return 'South';
+    if (degrees >= 202.5 && degrees < 247.5) return 'Southwest';
+    if (degrees >= 247.5 && degrees < 292.5) return 'West';
+    if (degrees >= 292.5 && degrees < 337.5) return 'Northwest';
+    return 'Unknown';
+};
+
 const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, error }) => {
     if (error) {
         return <div id="weather-info">{error}</div>;
@@ -34,6 +46,8 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, error }) => {
             </div>
             <p>Humidity: {weather.main.humidity}%</p>
             <p>Wind Speed: {weather.wind.speed} m/s</p>
+            {weather.main.pressure && <p>Pressure: {weather.main.pressure} hPa</p>}
+            {weather.wind.deg && <p>Wind Direction: {getWindDirection(weather.wind.deg)}</p>}
         </div>
     );
 };

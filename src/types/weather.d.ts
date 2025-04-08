@@ -7,6 +7,7 @@ export interface WeatherData {
         temp: number;
         feels_like: number;
         humidity: number;
+        pressure: number;
     };
     weather: {
         description: string;
@@ -14,6 +15,7 @@ export interface WeatherData {
     }[];
     wind: {
         speed: number;
+        deg?: number;
     };
     cod?: string | number;
 }
