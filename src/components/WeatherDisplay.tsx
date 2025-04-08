@@ -1,23 +1,5 @@
 import React from 'react';
-
-interface WeatherData {
-    name: string;
-    sys: {
-        country: string;
-    };
-    main: {
-        temp: number;
-        feels_like: number;
-        humidity: number;
-    };
-    weather: {
-        description: string;
-        icon: string;
-    }[];
-    wind: {
-        speed: number;
-    };
-}
+import { WeatherData } from '../types/weather';
 
 interface WeatherDisplayProps {
     weather: WeatherData | null;

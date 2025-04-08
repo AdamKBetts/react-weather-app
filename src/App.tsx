@@ -2,28 +2,9 @@ import React, {useState} from 'react';
 import SearchBar from './components/SearchBar';
 import WeatherDisplay from './components/WeatherDisplay';
 import './App.css';
+import { WeatherData } from './types/weather';
 
 const apiKey = "YOUR_API_KEY";
-
-interface WeatherData {
-  name: string;
-  sys: {
-    country: string;
-  };
-  main: {
-    temp: number;
-    feels_like: number;
-    humidity: number;
-  };
-  weather: {
-    description: string;
-    icon: string;
-  }[];
-  wind: {
-    speed: number;
-  };
-  cod?: string | number;
-}
 
 function App() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
