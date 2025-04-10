@@ -83,6 +83,23 @@
   margin-bottom: 15px;
 }
 
+.forecast-by-day {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.forecast-day {
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.forecast-day h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
 .forecast-items {
   display: flex;
   overflow-x: auto;
