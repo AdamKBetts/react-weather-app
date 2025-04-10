@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import SearchBar from './components/SearchBar';
 import WeatherDisplay from './components/WeatherDisplay';
+import WeatherForecast from './components/WeatherForecast';
 import './App.css';
 import { WeatherData, ForecastData } from './types/weather';
 
@@ -64,6 +65,7 @@ function App() {
       <h1>Weather App</h1>
       <SearchBar onSearch={handleSearch} />
       <WeatherDisplay weather={weatherData} error={error} />
+      <WeatherForecast forecast={forecastData} />
     </div>
   );
 }

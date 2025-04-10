@@ -66,3 +66,41 @@
   color: #777;
   font-style: italic;
 }
+
+.weather-forecast {
+  margin-top: 30px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  text-align: left;
+}
+
+.weather-forecast h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.forecast-items {
+  display: flex;
+  overflow-x: auto;
+}
+
+.forecast-item {
+  flex: 0 0 auto;
+  margin-right: 15px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.forecast-item:last-child {
+  margin-right: 0;
+}
+
+.forecast-description {
+  font-size: 0.9em;
+  color: #777;
+  margin-top: 5px;
+}
