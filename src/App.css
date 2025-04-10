@@ -74,6 +74,8 @@
   border-radius: 4px;
   background-color: #f9f9f9;
   text-align: left;
+  max-width: 90%;
+  box-sizing: border-box;
 }
 
 .weather-forecast h3 {
@@ -84,15 +86,18 @@
 .forecast-items {
   display: flex;
   overflow-x: auto;
+  padding-bottom: 15px;
+  min-width: 600px;
 }
 
 .forecast-item {
   flex: 0 0 auto;
-  margin-right: 15px;
+  margin-right: 10px;
   padding: 10px;
   border: 1px solid #eee;
   border-radius: 4px;
   text-align: center;
+  width: 120px;
 }
 
 .forecast-item:last-child {
@@ -103,4 +108,5 @@
   font-size: 0.9em;
   color: #777;
   margin-top: 5px;
+  word-break: break-word;
 }

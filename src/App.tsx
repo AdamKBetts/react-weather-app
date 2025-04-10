@@ -5,7 +5,7 @@ import WeatherForecast from './components/WeatherForecast';
 import './App.css';
 import { WeatherData, ForecastData } from './types/weather';
 
-const apiKey = "YOUR_API_KEY";
+const apiKey = "Your_API_key";
 
 function App() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
@@ -45,7 +45,7 @@ function App() {
   const fetchForecastData = async (city: string) => {
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?q=<span class="math-inline">\{city\}&appid\=</span>{apiKey}&units=metric`
+        `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`
       );
 
       if (!response.ok) {
