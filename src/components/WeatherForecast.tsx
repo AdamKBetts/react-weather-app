@@ -11,7 +11,7 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
     }
 
     const forecastsByDay: { [key: string]: ForecastItem[] } = forecast.list.reduce((acc: { [key: string]: ForecastItem[] }, item) => {
-        const date = new Date(item.dt * 1000).toLocaleDateString();
+        const date = new Date(item.dt * 1000).toLocaleDateString('en-GB');
         if (!acc[date]) {
             acc[date] =[];
         }
