@@ -5,7 +5,7 @@ import WeatherForecast from './components/WeatherForecast';
 import './App.css';
 import { WeatherData, ForecastData } from './types/weather';
 
-const apiKey = "Your_API_key";
+const apiKey = "your_API_key";
 
 function App() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);

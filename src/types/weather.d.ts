@@ -17,6 +17,10 @@ export interface WeatherData {
         speed: number;
         deg?: number;
     };
+    visibility?: number;
+    clouds?: {
+        all: number;
+    }
     cod?: string | number;
 }
 
