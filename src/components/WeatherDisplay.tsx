@@ -48,6 +48,8 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, error }) => {
             <p>Wind Speed: {weather.wind.speed} m/s</p>
             {weather.main.pressure && <p>Pressure: {weather.main.pressure} hPa</p>}
             {weather.wind.deg && <p>Wind Direction: {getWindDirection(weather.wind.deg)}</p>}
+            {weather.visibility && <p>Visibility: {weather.visibility} meters</p>}
+            {weather.clouds && <p>Cloudiness: {weather.clouds.all}%</p>}
         </div>
     );
 };
