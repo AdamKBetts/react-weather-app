@@ -100,6 +100,21 @@
   margin-bottom: 10px;
 }
 
+.daily-temps {
+  margin-bottom: 10px;
+  font-size: 0.95em;
+}
+
+.max-temp {
+  font-weight: bold;
+  color: #ff6f69;
+}
+
+.min-temp {
+  font-weight: bold;
+  color: #87ceeb;
+}
+
 .forecast-items {
   display: flex;
   overflow-x: auto;

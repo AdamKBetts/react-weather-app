@@ -23,26 +23,35 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
         <div className="weather-forecast">
             <h3>5-Day Weather Forecast</h3>
             <div className="forecast-by-day">
-                {Object.entries(forecastsByDay).map(([date, forecasts]) => (
-                    <div key={date} className="forecast-day">
-                        <h4>{date}</h4>
-                        <div className="forecast-items">
-                            {forecasts.map((item, index) => (
-                                <div key={index} className="forecast-item">
-                                    <p>{new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                    <img
-                                    src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`}
-                                    alt={item.weather[0].description}
-                                    width="40"
-                                    height="40"
-                                    />
-                                    <p>{Math.round(item.main.temp)}°C</p>
-                                    <p className="forecast-description">{item.weather[0].description}</p>
-                                </div>
-                            ))}
+                {Object.entries(forecastsByDay).map(([date, forecasts]) => {
+                    const minTemp = Math.min(...forecasts.map(item => item.main.temp));
+                    const maxTemp = Math.max(...forecasts.map(item => item.main.temp));
+
+                    return (
+                        <div key={date} className="forecast-day">
+                            <h4>{date}</h4>
+                            <p className="daily-temps">
+                                <span className="max-temp">High: {Math.round(maxTemp)}°C</span> /
+                                <span className="min-temp">Low: {Math.round(minTemp)}°C</span>
+                            </p>
+                            <div className="forecast-items">
+                                {forecasts.map((item, index) => (
+                                    <div key={index} className="forecast-item">
+                                        <p>{new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                        <img
+                                            src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`}
+                                            alt={item.weather[0].description}
+                                            width="40"
+                                            height="40"
+                                            />
+                                            <p>{Math.round(item.main.temp)}°C</p>
+                                            <p className="forecast-description">{item.weather[0].description}</p>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
