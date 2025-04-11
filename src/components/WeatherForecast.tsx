@@ -27,6 +27,8 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
                     const minTemp = Math.min(...forecasts.map(item => item.main.temp));
                     const maxTemp = Math.max(...forecasts.map(item => item.main.temp));
 
+                    const firstForecastOfDay = forecasts[0];
+
                     return (
                         <div key={date} className="forecast-day">
                             <h4>{date}</h4>
@@ -34,21 +36,17 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
                                 <span className="max-temp">High: {Math.round(maxTemp)}°C</span> /
                                 <span className="min-temp">Low: {Math.round(minTemp)}°C</span>
                             </p>
-                            <div className="forecast-items">
-                                {forecasts.map((item, index) => (
-                                    <div key={index} className="forecast-item">
-                                        <p>{new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                        <img
-                                            src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`}
-                                            alt={item.weather[0].description}
-                                            width="40"
-                                            height="40"
-                                            />
-                                            <p>{Math.round(item.main.temp)}°C</p>
-                                            <p className="forecast-description">{item.weather[0].description}</p>
-                                    </div>
-                                ))}
-                            </div>
+                            {firstForecastOfDay && firstForecastOfDay.weather && firstForecastOfDay.weather.length > 0 && (
+                                <div className="daily-forecast">
+                                    <img
+                                        src={`https://openweathermap.org/img/wn/${firstForecastOfDay.weather[0].icon}@2x.png`}
+                                        alt={firstForecastOfDay.weather[0].description}
+                                        width="60"
+                                        height="60"
+                                        />
+                                        <p className="midday-description">{firstForecastOfDay.weather[0].description}</p>
+                                </div>
+                            )}
                         </div>
                     );
                 })}
