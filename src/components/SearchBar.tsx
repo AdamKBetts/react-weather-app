@@ -2,9 +2,10 @@ import React, {useState} from 'react';
 
 interface SearchBarProps {
     onSearch: (city: string) => void;
+    onUseLocation: () => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onUseLocation }) => {
     const [city, setCity] = useState('');
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,6 +32,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
                 id="city-input"
             />
             <button type="submit" id="search-button">Search</button>
+            <button type="button" onClick={onUseLocation}>Use Current Location</button>
         </form>
     );
 };
