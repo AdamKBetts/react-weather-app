@@ -157,3 +157,18 @@
   margin-top: 5px;
   word-break: break-word;
 }
+
+.unit-selector {
+  margin-top: 10px;
+  display: flex;
+  gap: 15px;
+}
+
+.unit-selector label {
+  display: flex;
+  align-items: center;
+}
+
+.unit-selector input[type="radio"] {
+  margin-right: 5px;
+}

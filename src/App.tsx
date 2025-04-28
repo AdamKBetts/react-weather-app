@@ -9,6 +9,7 @@ function App() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [forecastData, setForecastData] = useState<ForecastData | null>(null);
+  const [units, setUnits] = useState('metric'); // Default to celsius
 
   const apiKey = "YOUR_API_KEY";
 
@@ -116,10 +117,14 @@ function App() {
     }
   };
 
+  const handleUnitChange = (newUnit: string) => {
+    setUnits(newUnit);
+  }
+
   return (
     <div className="container">
       <h1>Weather App</h1>
-      <SearchBar onSearch={handleSearch} onUseLocation={handleGeolocation} />
+      <SearchBar onSearch={handleSearch} onUseLocation={handleGeolocation} onUnitChange={handleUnitChange}/>
       <WeatherDisplay weather={weatherData} error={error} />
       <WeatherForecast forecast={forecastData} />
     </div>
