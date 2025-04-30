@@ -11,12 +11,15 @@ function App() {
   const [forecastData, setForecastData] = useState<ForecastData | null>(null);
   const [units, setUnits] = useState('metric'); // Default to celsius
 
+  const [lastSearchType, setLastSearchType] = useState<'city' | 'coords' | null>(null);
+  const [lastSearchValue, setLastSearchValue] = useState<string | { lat: number; lon: number } | null>(null);
+
   const apiKey = "YOUR_API_KEY";
 
   const fetchWeatherData = async (city: string) => {
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`
+        `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=${units}`
       );
       if (!response.ok) {
         const message = `HTTP error! status: ${response.status}`;
@@ -34,7 +37,7 @@ function App() {
   const fetchForecastData = async (city: string) => {
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`
+        `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=${units}`
       );
       if (!response.ok) {
         const message = `HTTP error! status: ${response.status}`;
@@ -51,6 +54,9 @@ function App() {
     setWeatherData(null);
     setForecastData(null);
     setError(null);
+
+    setLastSearchType('city');
+    setLastSearchValue(city);
 
     const currentWeather = await fetchWeatherData(city);
 
@@ -69,7 +75,7 @@ function App() {
     setError(null);
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=${units}`
       );
       if (!response.ok) {
         const message = `HTTP error! status: ${response.status}`;
@@ -87,7 +93,7 @@ function App() {
   const fetchForecastDataByCoords = async (lat: number, lon: number) => {
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
+        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=${units}`
       );
       if (!response.ok) {
         const message = `HTTP error! status: ${response.status}`;
@@ -105,6 +111,10 @@ function App() {
       navigator.geolocation.getCurrentPosition (
         (position) => {
           const { latitude, longitude } = position.coords;
+
+          setLastSearchType('coords');
+          setLastSearchValue({ lat: latitude, lon: longitude });
+
           fetchWeatherDataByCoords(latitude, longitude);
         },
         (error) => {
@@ -119,14 +129,24 @@ function App() {
 
   const handleUnitChange = (newUnit: string) => {
     setUnits(newUnit);
-  }
+    if (lastSearchType === 'city' && typeof lastSearchValue === 'string') {
+      handleSearch(lastSearchValue);
+    } else if (lastSearchType === 'coords' && lastSearchValue && typeof lastSearchValue !== 'string') {
+      fetchWeatherDataByCoords(lastSearchValue.lat, lastSearchValue.lon);
+    } else {
+      // If no previous search, clear data and prompt user
+      setWeatherData(null);
+      setForecastData(null);
+      setError("Units changed. Please search again or use your location.");
+    }
+  };
 
   return (
     <div className="container">
       <h1>Weather App</h1>
       <SearchBar onSearch={handleSearch} onUseLocation={handleGeolocation} onUnitChange={handleUnitChange}/>
-      <WeatherDisplay weather={weatherData} error={error} />
-      <WeatherForecast forecast={forecastData} />
+      <WeatherDisplay weather={weatherData} error={error} units={units}/>
+      <WeatherForecast forecast={forecastData} units={units} />
     </div>
   );
 }

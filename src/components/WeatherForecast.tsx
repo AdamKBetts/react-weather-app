@@ -3,9 +3,10 @@ import {ForecastData, ForecastItem} from '../types/weather';
 
 interface WeatherForecastProps {
     forecast: ForecastData | null;
+    units: string;
 }
 
-const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
+const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast, units }) => {
     if (!forecast || !forecast.list || forecast.list.length === 0) {
         return <div>No forecast data available</div>;
     }
@@ -18,6 +19,8 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
         acc[date].push(item);
         return acc;
     }, {});
+
+    const tempSymbol = units === 'metric' ? '°C' : '°F';
 
     return (
         <div className="weather-forecast">
@@ -33,8 +36,8 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast }) => {
                         <div key={date} className="forecast-day">
                             <h4>{date}</h4>
                             <p className="daily-temps">
-                                <span className="max-temp">High: {Math.round(maxTemp)}°C</span> /
-                                <span className="min-temp">Low: {Math.round(minTemp)}°C</span>
+                                <span className="max-temp">High: {Math.round(maxTemp)}{tempSymbol}</span> /
+                                <span className="min-temp">Low: {Math.round(minTemp)}{tempSymbol}</span>
                             </p>
                             {firstForecastOfDay && firstForecastOfDay.weather && firstForecastOfDay.weather.length > 0 && (
                                 <div className="daily-forecast">
