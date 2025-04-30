@@ -16,7 +16,7 @@ function App() {
 
   const apiKey = "YOUR_API_KEY";
 
-  const fetchWeatherData = async (city: string) => {
+  const fetchWeatherData = async (city: string, units: string) => {
     try {
       const response = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=${units}`
@@ -34,7 +34,7 @@ function App() {
     }
   };
 
-  const fetchForecastData = async (city: string) => {
+  const fetchForecastData = async (city: string, units: string) => {
     try {
       const response = await fetch(
         `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=${units}`
@@ -58,7 +58,7 @@ function App() {
     setLastSearchType('city');
     setLastSearchValue(city);
 
-    const currentWeather = await fetchWeatherData(city);
+    const currentWeather = await fetchWeatherData(city, units);
 
     if (currentWeather) {
       if (currentWeather.cod === '404') {
@@ -66,11 +66,11 @@ function App() {
         return;
       }
       setWeatherData(currentWeather);
-      fetchForecastData(city);
+      fetchForecastData(city, units);
     }
   };
 
-  const fetchWeatherDataByCoords = async (lat: number, lon: number) => {
+  const fetchWeatherDataByCoords = async (lat: number, lon: number, units: string) => {
     setWeatherData(null);
     setError(null);
     try {
@@ -83,14 +83,14 @@ function App() {
       }
       const data: WeatherData = await response.json();
       setWeatherData(data);
-      fetchForecastDataByCoords(lat, lon);
+      fetchForecastDataByCoords(lat, lon, units);
     } catch (error: any) {
       console.error('Could not fetch weather data by coordinates:', error);
       setError('Failed to fetch weather data for your location');
     }
   };
 
-  const fetchForecastDataByCoords = async (lat: number, lon: number) => {
+  const fetchForecastDataByCoords = async (lat: number, lon: number, units: string) => {
     try {
       const response = await fetch(
         `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=${units}`
@@ -115,7 +115,7 @@ function App() {
           setLastSearchType('coords');
           setLastSearchValue({ lat: latitude, lon: longitude });
 
-          fetchWeatherDataByCoords(latitude, longitude);
+          fetchWeatherDataByCoords(latitude, longitude, units);
         },
         (error) => {
           console.error('Error getting location:', error);
@@ -130,9 +130,18 @@ function App() {
   const handleUnitChange = (newUnit: string) => {
     setUnits(newUnit);
     if (lastSearchType === 'city' && typeof lastSearchValue === 'string') {
-      handleSearch(lastSearchValue);
+      fetchWeatherData(lastSearchValue, newUnit).then(currentWeather => {
+        if (currentWeather) {
+          if (currentWeather.cod === '404') {
+            setError('City not found. Please enter a valid city name.');
+            return;
+          }
+          setWeatherData(currentWeather);
+          fetchForecastData(lastSearchValue, newUnit);
+        }
+      });
     } else if (lastSearchType === 'coords' && lastSearchValue && typeof lastSearchValue !== 'string') {
-      fetchWeatherDataByCoords(lastSearchValue.lat, lastSearchValue.lon);
+      fetchWeatherDataByCoords(lastSearchValue.lat, lastSearchValue.lon, newUnit);
     } else {
       // If no previous search, clear data and prompt user
       setWeatherData(null);
