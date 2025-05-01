@@ -172,3 +172,32 @@
 .unit-selector input[type="radio"] {
   margin-right: 5px;
 }
+
+.status-message {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 1.2em;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.loading-message {
+  color: #007bff;
+  border: 1px solid #b8daff;
+  background-color: #e0f7ff;
+}
+
+.error-message {
+  color: #dc3545;
+  font-weight: bold;
+  border: 1px solid #f5c6cb;
+  background-color: #f8d7da;
+}
+
+.initial-message {
+  color: #555;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+}

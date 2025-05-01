@@ -10,6 +10,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [forecastData, setForecastData] = useState<ForecastData | null>(null);
   const [units, setUnits] = useState('metric'); // Default to celsius
+  const [isLoading, setIsLoading] = useState(false);
 
   const [lastSearchType, setLastSearchType] = useState<'city' | 'coords' | null>(null);
   const [lastSearchValue, setLastSearchValue] = useState<string | { lat: number; lon: number } | null>(null);
@@ -54,19 +55,25 @@ function App() {
     setWeatherData(null);
     setForecastData(null);
     setError(null);
+    setIsLoading(true);
 
     setLastSearchType('city');
     setLastSearchValue(city);
 
-    const currentWeather = await fetchWeatherData(city, units);
+    try {
+      const currentWeather = await fetchWeatherData(city, units);
 
-    if (currentWeather) {
-      if (currentWeather.cod === '404') {
-        setError('City not found. Please enter a valid city name.');
-        return;
+      if (currentWeather) {
+        if (currentWeather.cod === '404') {
+          setError('City not found. Please enter a valid city name.');
+        } else {
+          setWeatherData(currentWeather);
+          await fetchForecastData(city, units);
+        }
       }
-      setWeatherData(currentWeather);
-      fetchForecastData(city, units);
+      setIsLoading(false);
+    } catch (error: any) {
+      setIsLoading(false);
     }
   };
 
@@ -83,10 +90,14 @@ function App() {
       }
       const data: WeatherData = await response.json();
       setWeatherData(data);
-      fetchForecastDataByCoords(lat, lon, units);
+      await fetchForecastDataByCoords(lat, lon, units);
+      setIsLoading(false);
+      return data;
     } catch (error: any) {
       console.error('Could not fetch weather data by coordinates:', error);
       setError('Failed to fetch weather data for your location');
+      setIsLoading(false);
+      return null;
     }
   };
 
@@ -108,6 +119,12 @@ function App() {
 
   const handleGeolocation = () => {
     if (navigator.geolocation) {
+
+        setWeatherData(null);
+        setForecastData(null);
+        setError(null);
+        setIsLoading(true);
+
       navigator.geolocation.getCurrentPosition (
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -120,33 +137,27 @@ function App() {
         (error) => {
           console.error('Error getting location:', error);
           setError('Could not retrieve your location. Please try again or enter a city.');
+          setIsLoading(false);
         }
       );
     } else {
       setError('Geolocation is not supported by your browser.');
+      setIsLoading(false);
     }
   };
 
   const handleUnitChange = (newUnit: string) => {
     setUnits(newUnit);
+    
     if (lastSearchType === 'city' && typeof lastSearchValue === 'string') {
-      fetchWeatherData(lastSearchValue, newUnit).then(currentWeather => {
-        if (currentWeather) {
-          if (currentWeather.cod === '404') {
-            setError('City not found. Please enter a valid city name.');
-            return;
-          }
-          setWeatherData(currentWeather);
-          fetchForecastData(lastSearchValue, newUnit);
-        }
-      });
+      handleSearch(lastSearchValue)
     } else if (lastSearchType === 'coords' && lastSearchValue && typeof lastSearchValue !== 'string') {
       fetchWeatherDataByCoords(lastSearchValue.lat, lastSearchValue.lon, newUnit);
     } else {
-      // If no previous search, clear data and prompt user
       setWeatherData(null);
       setForecastData(null);
       setError("Units changed. Please search again or use your location.");
+      setIsLoading(false);
     }
   };
 
@@ -154,8 +165,30 @@ function App() {
     <div className="container">
       <h1>Weather App</h1>
       <SearchBar onSearch={handleSearch} onUseLocation={handleGeolocation} onUnitChange={handleUnitChange}/>
-      <WeatherDisplay weather={weatherData} error={error} units={units}/>
-      <WeatherForecast forecast={forecastData} units={units} />
+
+      {isLoading && (
+        <div className="status-message loading-message">Loading weather data...</div>
+      )}
+
+      {!isLoading && error && (
+        <div className="status-message error-message">{error}</div>
+      )}
+
+      {!isLoading && !error && weatherData && forecastData && (
+        <>
+          <WeatherDisplay weather={weatherData} error={error} units={units} />
+          <WeatherForecast forecast={forecastData} units={units} />
+        </>
+      )}
+
+      {!isLoading && !error && !weatherData && !forecastData && !lastSearchType && (
+        <div className="status-message initial-message">Enter a city or use your location to see the weather.</div>
+      )}
+
+      {!isLoading && !error && weatherData && !forecastData && lastSearchType && (
+        <div className="status-message error-message">Could not load forecast data.</div>
+      )}
+
     </div>
   );
 }
