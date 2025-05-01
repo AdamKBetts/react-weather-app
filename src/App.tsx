@@ -24,13 +24,25 @@ function App() {
       );
       if (!response.ok) {
         const message = `HTTP error! status: ${response.status}`;
+        let errorText = `Failed to fetch weather data: ${response.status}`;
+          try {
+            const errorJson = await response.json();
+            if(errorJson.message) errorText = `Faled to fetch weather data: ${errorJson.message}`;
+          } catch (jsonError) {
+            console.error("Failed to parse error response JSON:", jsonError);
+          }
+
         throw new Error(message);
       }
       const data: WeatherData = await response.json();
       return data;
     } catch (error: any) {
       console.error('Could not fetch weather data:', error);
-      setError('Failed to fetch weather data. Please try again.');
+      if (error instanceof TypeError) {
+        setError('Network error. Please check your internet connection.');
+      } else {
+        setError(error.message || 'Failed to fetch weather data. Please try again.');
+      }
       return null;
     }
   };
@@ -42,12 +54,24 @@ function App() {
       );
       if (!response.ok) {
         const message = `HTTP error! status: ${response.status}`;
+          let errorText = `Faled to fetch forecast data: ${response.status}`;
+          try {
+            const errorJson = await response.json();
+            if(errorJson.message) errorText = `Failed to fetch forecast data: ${errorJson.message}`;
+          } catch (jsonError) {
+            console.error("Failed to parse error response JSON:", jsonError);
+          }
         throw new Error(message);
       }
       const data: ForecastData = await response.json();
       setForecastData(data);
     } catch (error: any) {
       console.error('Could not fetch forecast data:', error);
+        if (error instanceof TypeError) {
+          console.error('Forecast fetch network error.');
+        } else {
+          console.error('Forecast fetch failed:', error.message);
+        }
     }
   };
 
@@ -86,6 +110,13 @@ function App() {
       );
       if (!response.ok) {
         const message = `HTTP error! status: ${response.status}`;
+        let errorText = `Failed to fetch weather data: ${response.status}`;
+        try {
+          const errorJson = await response.json();
+          if(errorJson.message) errorText = `Failed to fetch weather data: ${errorJson.message}`;
+        } catch (jsonError) {
+          console.error("Failed to parse eror response JSON:", jsonError);
+        }
         throw new Error(message);
       }
       const data: WeatherData = await response.json();
@@ -95,7 +126,11 @@ function App() {
       return data;
     } catch (error: any) {
       console.error('Could not fetch weather data by coordinates:', error);
-      setError('Failed to fetch weather data for your location');
+      if (error instanceof TypeError) {
+        setError('Network error. Please check your internet connection.');
+      } else {
+        setError(error.message || 'Failed to fetch weather data for your location. Please try again.');
+      }
       setIsLoading(false);
       return null;
     }
@@ -108,12 +143,24 @@ function App() {
       );
       if (!response.ok) {
         const message = `HTTP error! status: ${response.status}`;
+        let errorText = `Failed to fetch forecast date: ${response.status}`;
+        try {
+          const errorJson = await response.json();
+          if(errorJson.message) errorText = `Failed to fetch forecast data: ${errorJson.message}`;
+        } catch (jsonError) {
+          console.error("Failed to parse error response JSON:", jsonError);
+        }
         throw new Error(message);
       }
       const data: ForecastData = await response.json();
       setForecastData(data);
     } catch (error: any) {
       console.error('Could not fetch forecast data by coordinates:', error);
+      if (error instanceof TypeError) {
+        console.error('Forecast fetch network error.');
+      } else {
+        console.error('Forecast fetch failed:', error.message);
+      }
     }
   };
 
