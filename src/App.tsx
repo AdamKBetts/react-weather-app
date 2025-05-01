@@ -23,7 +23,6 @@ function App() {
         `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=${units}`
       );
       if (!response.ok) {
-        const message = `HTTP error! status: ${response.status}`;
         let errorText = `Failed to fetch weather data: ${response.status}`;
           try {
             const errorJson = await response.json();
@@ -32,7 +31,7 @@ function App() {
             console.error("Failed to parse error response JSON:", jsonError);
           }
 
-        throw new Error(message);
+        throw new Error(errorText);
       }
       const data: WeatherData = await response.json();
       return data;
@@ -53,7 +52,6 @@ function App() {
         `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=${units}`
       );
       if (!response.ok) {
-        const message = `HTTP error! status: ${response.status}`;
           let errorText = `Faled to fetch forecast data: ${response.status}`;
           try {
             const errorJson = await response.json();
@@ -61,7 +59,7 @@ function App() {
           } catch (jsonError) {
             console.error("Failed to parse error response JSON:", jsonError);
           }
-        throw new Error(message);
+        throw new Error(errorText);
       }
       const data: ForecastData = await response.json();
       setForecastData(data);
@@ -109,7 +107,6 @@ function App() {
         `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=${units}`
       );
       if (!response.ok) {
-        const message = `HTTP error! status: ${response.status}`;
         let errorText = `Failed to fetch weather data: ${response.status}`;
         try {
           const errorJson = await response.json();
@@ -117,7 +114,7 @@ function App() {
         } catch (jsonError) {
           console.error("Failed to parse eror response JSON:", jsonError);
         }
-        throw new Error(message);
+        throw new Error(errorText);
       }
       const data: WeatherData = await response.json();
       setWeatherData(data);
@@ -142,7 +139,6 @@ function App() {
         `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=${units}`
       );
       if (!response.ok) {
-        const message = `HTTP error! status: ${response.status}`;
         let errorText = `Failed to fetch forecast date: ${response.status}`;
         try {
           const errorJson = await response.json();
@@ -150,7 +146,7 @@ function App() {
         } catch (jsonError) {
           console.error("Failed to parse error response JSON:", jsonError);
         }
-        throw new Error(message);
+        throw new Error(errorText);
       }
       const data: ForecastData = await response.json();
       setForecastData(data);
