@@ -179,8 +179,24 @@ function App() {
         },
         (error) => {
           console.error('Error getting location:', error);
-          setError('Could not retrieve your location. Please try again or enter a city.');
           setIsLoading(false);
+
+          let errorMessage = 'Could not retrieve your location.'
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Location permission denied. Please enable location access in your browser settings to use this feature.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Location information is unavailable.';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'The request to get user location timed out.';
+              break;
+            default:
+              errorMessage = 'An unknown error occurred while retrieving your location.';
+              break;
+          }
+          setError(errorMessage);
         }
       );
     } else {
@@ -219,6 +235,9 @@ function App() {
 
       {!isLoading && !error && weatherData && forecastData && (
         <>
+          {lastSearchType === 'coords' && (
+            <div className="location-source-message">Showing weather for your current location:</div>
+          )}
           <WeatherDisplay weather={weatherData} error={error} units={units} />
           <WeatherForecast forecast={forecastData} units={units} />
         </>
