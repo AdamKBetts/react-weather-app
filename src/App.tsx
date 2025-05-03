@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SearchBar from './components/SearchBar';
 import WeatherDisplay from './components/WeatherDisplay';
 import WeatherForecast from './components/WeatherForecast';
@@ -16,6 +16,73 @@ function App() {
   const [lastSearchValue, setLastSearchValue] = useState<string | { lat: number; lon: number } | null>(null);
 
   const apiKey = "YOUR_API_KEY";
+
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem('weatherAppFavorites');
+    if (savedFavorites) {
+      if (savedFavorites) {
+        try {
+          setFavorites(JSON.parse(savedFavorites));
+        } catch (e) {
+          console.error("Failed to parse favorites from localStorage", e);
+          setFavorites([]);
+        }
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('weatherAppFavorites', JSON.stringify(favorites));
+  }, [favorites]);
+
+  const fetchSuggestions = async (query: string): Promise<string[]> => {
+    if (!query || query.length < 3) return [];
+    const limit = 5;
+
+    try {
+      const response = await fetch(
+        `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=${limit}&appid=${apiKey}`
+      );
+
+      if (!response.ok) {
+        let errorText = `Failed to fetch suggestions: ${response.status}`;
+        try {
+          const errorJson = await response.json();
+          if(errorJson.message) errorText = `Failed to fetch suggestions: ${errorJson.message}`;
+        } catch (jsonError) {
+          console.error("Failed to parse suggestion error JSON:", jsonError);
+        }
+        console.error(errorText);
+        return [];
+      }
+
+      const data = await response.json();
+
+      const suggestionNames = data.map((item: any) => {
+        let name = item.name;
+        if (item.state) name += `, ${item.state}`;
+        if (item.country && item.country !== 'US') name += `, ${item.country}`;
+          else if (item.country === 'US' && !item.state) name += `, ${item.country}`;
+        return name;
+      });
+
+      return suggestionNames;
+    } catch(error) {
+      console.error("Network or other error fetching suggestions:", error);
+      return [];
+    }
+  };
+
+  const addFavorite = (city: string) => {
+    if (!favorites.includes(city)) {
+      setFavorites([...favorites, city]);
+    }
+  };
+  const removeFavorite = (city: string) => {
+    setFavorites(favorites.filter(fav => fav !== city));
+  };
 
   const fetchWeatherData = async (city: string, units: string) => {
     try {
@@ -223,7 +290,27 @@ function App() {
   return (
     <div className="container">
       <h1>Weather App</h1>
-      <SearchBar onSearch={handleSearch} onUseLocation={handleGeolocation} onUnitChange={handleUnitChange}/>
+      <SearchBar onSearch={handleSearch} onUseLocation={handleGeolocation} onUnitChange={handleUnitChange} onFetchSuggestions={fetchSuggestions}/>
+
+      {favorites.length > 0 && (
+        <div className="favorites-list">
+          <h4>Favorite Locations:</h4>
+          <ul>
+            {favorites.map(fav => (
+              <li key={fav}>
+                <span onClick={() => handleSearch(fav)} className="favorite-city-name">{fav}</span>
+                <button onClick={() => removeFavorite(fav)} className="remove-favorite-button">x</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {!isLoading && !error && weatherData && (
+        <button onClick={() => addFavorite(weatherData.name)} className="add-favorite-button">
+          Add {weatherData.name} to Favorites
+        </button>
+      )}
 
       {isLoading && (
         <div className="status-message loading-message">Loading weather data...</div>

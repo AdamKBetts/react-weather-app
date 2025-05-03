@@ -4,14 +4,29 @@ interface SearchBarProps {
     onSearch: (city: string) => void;
     onUseLocation: () => void;
     onUnitChange: (unit: string) => void;
+    onFetchSuggestions: (query: string) => Promise<string[]>;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onUseLocation, onUnitChange }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onUseLocation, onUnitChange, onFetchSuggestions }) => {
     const [city, setCity] = useState('');
     const [unit, setUnit] = useState('metric'); // Default to Celsius
+    const [suggestions, setSuggestions] = useState<string[]>([]);
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setCity(event.target.value);
+    const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const query = event.target.value;
+        setCity(query);
+
+        if (query.length > 2) {
+            try {
+                const fetchedSuggestions = await onFetchSuggestions(query);
+                setSuggestions(fetchedSuggestions);
+            } catch (error) {
+                console.error("Error fetching suggestions:", error);
+                setSuggestions([]);
+            }
+        } else {
+            setSuggestions([]);
+        }
     };
 
     const handleSubmit = (event: React.FormEvent) => {
@@ -30,15 +45,33 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onUseLocation, onUnitCh
         onUnitChange(newUnit); // Call the prop function to update in App
     };
 
+    const handleSuggestionsClick = (suggestion: string) => {
+        setCity(suggestion);
+        setSuggestions([]);
+        onSearch(suggestion);
+    }
+
     return (
         <form onSubmit={handleSubmit} className="search-bar">
-            <input
-                type="text"
-                placeholder="Enter city name"
-                value={city}
-                onChange={handleChange}
-                id="city-input"
-            />
+            <div className="search-input-container">
+                <input
+                    type="text"
+                    placeholder="Enter city name"
+                    value={city}
+                    onChange={handleChange}
+                    onBlur={() => setTimeout(() => setSuggestions([]), 100)}
+                />
+                    {suggestions.length > 0 && (
+                        <ul className="suggestions-list">
+                            {suggestions.map((suggestion, index) => (
+                                <li key={index} onClick={() => handleSuggestionsClick(suggestion)}>
+                                    {suggestion}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+            </div>
+
             <button type="submit" id="search-button">Search</button>
             <button type="button" onClick={onUseLocation}>Use Current Location</button>
 

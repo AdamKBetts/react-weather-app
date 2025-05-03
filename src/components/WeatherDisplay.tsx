@@ -36,6 +36,9 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, error, units }
 
     const tempSymbol = units === 'metric' ? '°C' : '°F';
 
+    const sunriseTime = weather.sys.sunrise ? new Date(weather.sys.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) : null;
+    const sunsetTime = weather.sys.sunset ? new Date(weather.sys.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) : null;
+
     return (
         <div id="weather-info">
             <h2>{weather.name}. {weather.sys.country}</h2>
@@ -47,6 +50,12 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, error, units }
                 </div>
                 <p className="description">{description.charAt(0).toUpperCase() + description.slice(1)}</p>
             </div>
+
+            <div className="sun-times">
+                {sunriseTime && <p>Sunrise: {sunriseTime}</p>}
+                {sunsetTime && <p>Sunset: {sunsetTime}</p>}
+            </div>
+
             <p>Humidity: {weather.main.humidity}%</p>
             <p>Wind Speed: {weather.wind.speed} m/s</p>
             {weather.main.pressure && <p>Pressure: {weather.main.pressure} hPa</p>}

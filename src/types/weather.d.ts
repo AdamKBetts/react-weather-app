@@ -2,6 +2,8 @@ export interface WeatherData {
     name: string;
     sys: {
         country: string;
+        sunrise: number;
+        sunset: number;
     };
     main: {
         temp: number;
