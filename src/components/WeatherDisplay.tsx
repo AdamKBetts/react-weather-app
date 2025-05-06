@@ -36,12 +36,15 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, error, units }
 
     const tempSymbol = units === 'metric' ? '°C' : '°F';
 
-    const sunriseTime = weather.sys.sunrise ? new Date(weather.sys.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) : null;
-    const sunsetTime = weather.sys.sunset ? new Date(weather.sys.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) : null;
+    const sunriseTimestamp = weather.sys?.sunrise ?? null;
+    const sunsetTimestamp = weather.sys?.sunset ?? null;
+
+    const sunriseTime = sunriseTimestamp ? new Date(sunriseTimestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) : null;
+    const sunsetTime = sunsetTimestamp ? new Date(sunsetTimestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) : null;
 
     return (
         <div id="weather-info">
-            <h2>{weather.name}. {weather.sys.country}</h2>
+            <h2>{weather.name}, {weather.sys.country}</h2>
             <div className="weather-details">
                 <img src={iconUrl} alt={description} width="60" height="60" />
                 <div className="temperatures">
@@ -57,11 +60,12 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, error, units }
             </div>
 
             <p>Humidity: {weather.main.humidity}%</p>
-            <p>Wind Speed: {weather.wind.speed} m/s</p>
-            {weather.main.pressure && <p>Pressure: {weather.main.pressure} hPa</p>}
-            {weather.wind.deg && <p>Wind Direction: {getWindDirection(weather.wind.deg)}</p>}
-            {weather.visibility && <p>Visibility: {weather.visibility} meters</p>}
-            {weather.clouds && <p>Cloudiness: {weather.clouds.all}%</p>}
+            {weather.wind?.speed != null && <p>Wind Speed: {weather.wind.speed} m/s</p>}
+            {weather.wind?.deg != null && <p>Wind Direction: {getWindDirection(weather.wind.deg)}</p>}
+
+            {weather.main.pressure != null && <p>Pressure: {weather.main.pressure} hPa</p>}
+            {weather.visibility != null && <p>Visibility: {weather.visibility} meters</p>}
+            {weather.clouds?.all != null && <p>Cloudiness: {weather.clouds.all}%</p>}
         </div>
     );
 };

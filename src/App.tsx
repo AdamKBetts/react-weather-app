@@ -67,7 +67,8 @@ function App() {
         setWeatherData(currentWeather);
 
         // Fetch forecast data - weatherApi.ts should throw on failure
-        await fetchForecastData(city, units);
+        const forecast = await fetchForecastData(city, units);
+        setForecastData(forecast);
 
         // Set loading to false after both awaited operations complete successfully
         setIsLoading(false);
@@ -107,7 +108,8 @@ function App() {
               setWeatherData(currentWeather);
 
               // Call the imported fetch function and await it - weatherApi.ts should throw on failure
-              await fetchForecastDataByCoords(latitude, longitude, units);
+              const forecast = await fetchForecastDataByCoords(latitude, longitude, units);
+              setForecastData(forecast);
 
               setIsLoading(false); // Set loading to false after success
 

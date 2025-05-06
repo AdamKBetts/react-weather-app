@@ -32,6 +32,38 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast, units }) =>
 
     const tempSymbol = units === 'metric' ? '°C' : '°F';
 
+    const getMostFrequentCondition = (dailyForecasts: ForecastItem[]) => {
+        const conditionCounts: { [key: string]: { count: number; description: string; icon: string } } = {};
+
+        for (const item of dailyForecasts) {
+            if (item.weather && item.weather.length > 0) {
+                const conditionId = item.weather[0].id;
+                const description = item.weather[0].description;
+                const icon = item.weather[0].icon;
+
+                if (!conditionCounts[conditionId]) {
+                    conditionCounts[conditionId] = { count: 0, description: description, icon: icon };
+                }
+                conditionCounts[conditionId].count++;
+            }
+        }
+
+        let mostFrequentCondition = { description: 'N/A', icon: '01d' };
+        let maxCount = 0;
+
+        for (const id in conditionCounts) {
+            if (conditionCounts[id].count > maxCount) {
+                maxCount = conditionCounts[id].count;
+                mostFrequentCondition = {
+                    description: conditionCounts[id].description,
+                    icon: conditionCounts[id].icon
+                };
+            }
+        }
+
+        return mostFrequentCondition;
+    };
+
     return (
         <div className="weather-forecast">
             <h3>5-Day Weather Forecast</h3>
@@ -40,7 +72,7 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast, units }) =>
                     const minTemp = Math.min(...forecasts.map(item => item.main.temp));
                     const maxTemp = Math.max(...forecasts.map(item => item.main.temp));
 
-                    const firstForecastOfDay = forecasts[0];
+                    const dailyOverview = getMostFrequentCondition(forecasts);
 
                     return (
                         <div key={date} className="forecast-day">
@@ -50,17 +82,15 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast, units }) =>
                                     <span className="max-temp">High: {Math.round(maxTemp)}{tempSymbol}</span> /
                                     <span className="min-temp">Low: {Math.round(minTemp)}{tempSymbol}</span>
                                 </p>
-                                {firstForecastOfDay && firstForecastOfDay.weather && firstForecastOfDay.weather.length > 0 && (
-                                    <div className="daily-summary">
-                                        <img
-                                            src={`https://openweathermap.org/img/wn/${firstForecastOfDay.weather[0].icon}@2x.png`}
-                                            alt={firstForecastOfDay.weather[0].description}
-                                            width="60"
-                                            height="60"
-                                        />
-                                        <p className="daily-description">{firstForecastOfDay.weather[0].description}</p>
-                                    </div>
-                                )}
+                                <div className="daily-summary">
+                                    <img
+                                        src={`https://openweathermap.org/img/wn/${dailyOverview.icon}@2x.png`}
+                                        alt={dailyOverview.description}
+                                        width="60"
+                                        height="60"
+                                    />
+                                    <p className="daily-description">{dailyOverview.description}</p>
+                                </div>
                                 <span className={`expand-indicator ${expandedDays[date] ? 'expanded' : ''}`}>&#9660;</span>
                             </div>
 

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect } from 'react';
 
 interface SearchBarProps {
     onSearch: (city: string) => void;
@@ -12,21 +12,27 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onUseLocation, onUnitCh
     const [unit, setUnit] = useState('metric'); // Default to Celsius
     const [suggestions, setSuggestions] = useState<string[]>([]);
 
-    const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const query = event.target.value;
-        setCity(query);
+    useEffect(() => {
+        if (city.length > 2) {
+            const debounceTimer = setTimeout(async () => {
+                try {
+                    const fetchedSuggestions = await onFetchSuggestions(city);
+                    setSuggestions(fetchedSuggestions);
+                } catch (error) {
+                    console.error("Error fetching suggestions:", error);
+                    setSuggestions([]);
+                }
+            }, 500);
 
-        if (query.length > 2) {
-            try {
-                const fetchedSuggestions = await onFetchSuggestions(query);
-                setSuggestions(fetchedSuggestions);
-            } catch (error) {
-                console.error("Error fetching suggestions:", error);
-                setSuggestions([]);
-            }
+            return () => clearTimeout(debounceTimer);
         } else {
             setSuggestions([]);
         }
+    }, [city, onFetchSuggestions]);
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const query = event.target.value;
+        setCity(query);
     };
 
     const handleSubmit = (event: React.FormEvent) => {
@@ -34,6 +40,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onUseLocation, onUnitCh
         if (city.trim()) {
             onSearch(city);
             setCity(''); // Clear the input field after search
+            setSuggestions([]);
         } else {
             alert('Please enter a city name.');
         }
@@ -45,7 +52,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onUseLocation, onUnitCh
         onUnitChange(newUnit); // Call the prop function to update in App
     };
 
-    const handleSuggestionsClick = (suggestion: string) => {
+    const handleSuggestionClick = (suggestion: string) => {
         setCity(suggestion);
         setSuggestions([]);
         onSearch(suggestion);
@@ -61,10 +68,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onUseLocation, onUnitCh
                     onChange={handleChange}
                     onBlur={() => setTimeout(() => setSuggestions([]), 100)}
                 />
-                    {suggestions.length > 0 && (
+                    {suggestions.length > 0 && document.activeElement === document.querySelector('.search-input-container input') && (
                         <ul className="suggestions-list">
                             {suggestions.map((suggestion, index) => (
-                                <li key={index} onClick={() => handleSuggestionsClick(suggestion)}>
+                                <li key={index} onClick={() => handleSuggestionClick(suggestion)}>
                                     {suggestion}
                                 </li>
                             ))}
@@ -92,7 +99,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onUseLocation, onUnitCh
                         checked={unit === 'imperial'}
                         onChange={handleUnitChange}
                     />
-                    Farenheit (°F)
+                    Fahrenheit (°F)
                 </label>
             </div>
         </form>
