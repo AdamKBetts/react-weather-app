@@ -95,23 +95,26 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({ forecast, units }) =>
                             </div>
 
                             {/* 3-Hour Forecast */}
-                            {expandedDays[date] && (
-                                <div className="forecast-items">
-                                    {forecasts.map((item, index) => (
-                                        <div key={index} className="forecast-item">
-                                            <p>{new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                            <img
-                                                src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`}
-                                                alt={item.weather[0].description}
-                                                width="60"
-                                                height="60"
-                                            />
-                                            <p>{Math.round(item.main.temp)}{tempSymbol}</p>
-                                            <p className="forecast-description">{item.weather[0].description}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                            <div className={`forecast-items ${expandedDays[date] ? 'expanded-forecast-items' : ''}`}> {/* Apply class based on state */}
+                                {/* ... map over 3-hour items ... */}
+                                {forecasts.map((item, index) => (
+                                     <div key={index} className="forecast-item">
+                                       {/* Display time */}
+                                       <p>{new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                       {/* Display icon */}
+                                       <img
+                                         src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`}
+                                         alt={item.weather[0].description}
+                                         width="50" // Adjusted size from previous App.css
+                                         height="50" // Adjusted size from previous App.css
+                                       />
+                                       {/* Display temperature */}
+                                       <p>{Math.round(item.main.temp)}{tempSymbol}</p>
+                                       {/* Display description */}
+                                       <p className="forecast-description">{item.weather[0].description}</p>
+                                     </div>
+                                ))}
+                            </div>
                         </div>
                     );
                 })}

@@ -2,9 +2,10 @@ import React from 'react';
 import { WeatherData } from '../types/weather';
 
 interface WeatherDisplayProps {
-    weather: WeatherData | null;
-    error: string | null;
+    weatherData: WeatherData | null;
     units: string;
+    locationSource: 'search' | 'geolocation' | null;
+    searchCityValue: string | null;
 }
 
 const getWindDirection = (degrees: number): string => {
@@ -19,53 +20,83 @@ const getWindDirection = (degrees: number): string => {
     return 'Unknown';
 };
 
-const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, error, units }) => {
-    if (error) {
-        return <div id="weather-info">{error}</div>;
+const formatVisibility = (meters: number | undefined, units: string): string => {
+    if (meters === undefined || meters === null) return 'N/A';
+    if (units === 'metric') {
+        const kilometers = (meters / 1000).toFixed(1);
+        return `${kilometers} km`;
+    } else {
+        const miles = (meters / 1609.34).toFixed(1);
+        return `${miles} miles`;
+    }
+};
+
+const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weatherData, units, locationSource, searchCityValue }) => {
+    if (!weatherData) {
+        return null;
     }
 
-    if (!weather) {
-        return <div id="weather-info"></div>;
-    }
+    const mainCondition = weatherData.weather?.[0]?.main;
 
-    const temperature = Math.round(weather.main.temp);
-    const feelsLike = Math.round(weather.main.feels_like);
-    const description = weather.weather[0].description;
-    const iconCode = weather.weather[0].icon;
-    const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+    const weatherClass = mainCondition ? `weather-info-${mainCondition}` : '';
 
     const tempSymbol = units === 'metric' ? '°C' : '°F';
+    const windUnit = units === 'metric' ? 'm/s' : 'mph';
 
-    const sunriseTimestamp = weather.sys?.sunrise ?? null;
-    const sunsetTimestamp = weather.sys?.sunset ?? null;
-
-    const sunriseTime = sunriseTimestamp ? new Date(sunriseTimestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) : null;
-    const sunsetTime = sunsetTimestamp ? new Date(sunsetTimestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) : null;
+    const sunriseTime = weatherData.sys?.sunrise ? new Date(weatherData.sys.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
+    const sunsetTime = weatherData.sys?.sunset ? new Date(weatherData.sys.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
+    const visibility = formatVisibility(weatherData.visibility, units);
 
     return (
-        <div id="weather-info">
-            <h2>{weather.name}, {weather.sys.country}</h2>
+        <div id="weather-info" className={weatherClass}>
+            <h2>{weatherData.name}, {weatherData.sys.country}</h2>
+
+            {locationSource === 'geolocation' && (
+                <p className="location-source-message">Weather data based on your current location.</p>
+            )}
+            {locationSource === 'search' && searchCityValue && (
+                <p className="location-source-message">Showing weather for "{searchCityValue}"</p>
+            )}
+
             <div className="weather-details">
-                <img src={iconUrl} alt={description} width="60" height="60" />
+                {weatherData.weather?.[0]?.icon && (
+                    <img
+                        src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
+                        alt={weatherData.weather[0].description || 'Weather icon'}
+                        width="80"
+                        height="80"
+                    />
+                )}
                 <div className="temperatures">
-                    <p className="temperature">{temperature}{tempSymbol}</p>
-                    <p className="feels-like">Feels like: {feelsLike}{tempSymbol}</p>
+                    {weatherData.main?.temp !== undefined && (
+                        <p className="temperature">{Math.round(weatherData.main.temp)}{tempSymbol}</p>
+                    )}
+                    {weatherData.main?.feels_like !== undefined && (
+                        <p className="feeld-like">Feels like {Math.round(weatherData.main.feels_like)}{tempSymbol}</p>
+                    )}
                 </div>
-                <p className="description">{description.charAt(0).toUpperCase() + description.slice(1)}</p>
+                {weatherData.weather?.[0]?.description && (
+                    <p className="description">{weatherData.weather[0].description.charAt(0).toUpperCase() + weatherData.weather[0].description.slice(1)}</p>
+                )}
             </div>
 
-            <div className="sun-times">
-                {sunriseTime && <p>Sunrise: {sunriseTime}</p>}
-                {sunsetTime && <p>Sunset: {sunsetTime}</p>}
-            </div>
+            {weatherData.main?.humidity !== undefined && <p>Humidity: {weatherData.main.humidity}%</p>}
+            {weatherData.wind?.speed !== undefined && (
+                <p>Wind: {weatherData.wind.speed} {windUnit}</p>
+            )}
+            {weatherData.wind?.deg !== undefined && (
+                <p>Wind Direction: {getWindDirection(weatherData.wind.deg)}</p>
+            )}
+            {weatherData.main?.pressure !== undefined && <p>Pressure: {weatherData.main.pressure} hPa</p>}
+            {weatherData.visibility !== undefined && <p>Visibility: {visibility}</p>}
+            {weatherData.clouds?.all !== undefined && <p>Cloudiness: {weatherData.clouds.all}%</p>}
 
-            <p>Humidity: {weather.main.humidity}%</p>
-            {weather.wind?.speed != null && <p>Wind Speed: {weather.wind.speed} m/s</p>}
-            {weather.wind?.deg != null && <p>Wind Direction: {getWindDirection(weather.wind.deg)}</p>}
-
-            {weather.main.pressure != null && <p>Pressure: {weather.main.pressure} hPa</p>}
-            {weather.visibility != null && <p>Visibility: {weather.visibility} meters</p>}
-            {weather.clouds?.all != null && <p>Cloudiness: {weather.clouds.all}%</p>}
+            {(sunriseTime || sunsetTime) && (
+                <div className="sun-times">
+                    {sunriseTime && <p>Sunrise: {sunriseTime}</p>}
+                    {sunsetTime && <p>Sunset: {sunsetTime}</p>}
+                </div>
+            )}
         </div>
     );
 };

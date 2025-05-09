@@ -9,46 +9,43 @@ import {
   fetchForecastData,
   fetchWeatherDataByCoords,
   fetchForecastDataByCoords,
-  fetchSuggestions // This import is correct
+  fetchSuggestions
 } from './api/weatherApi';
-
 
 function App() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [forecastData, setForecastData] = useState<ForecastData | null>(null);
-  const [units, setUnits] = useState('metric'); // Default to Celsius
+  const [units, setUnits] = useState('metic');
   const [isLoading, setIsLoading] = useState(false);
 
-  const [lastSearchType, setLastSearchType] = useState<'city' | 'coords' | null>(null);
-  const [lastSearchValue, setLastSearchValue] = useState<string | { lat: number; lon: number } | null>(null);
+  const [locationSource, setLocationSource] = useState<'search' | 'geolocation' | null>(null);
 
-  // apiKey is now in weatherApi.ts
+  const [lastSearchValue, setLastSearchValue] = useState<string | { lat: number; lon: number } | null>(null);
 
   const [favorites, setFavorites] = useState<string[]>([]);
 
-  // Load favorites from localStorage on component mount
   useEffect(() => {
     const savedFavorites = localStorage.getItem('weatherAppFavorites');
     if (savedFavorites) {
       try {
-        setFavorites(JSON.parse(savedFavorites));
+        const parsedFavorites: unknown = JSON.parse(savedFavorites);
+        if (Array.isArray(parsedFavorites) && parsedFavorites.every(item => typeof item === 'string')) {
+          setFavorites(parsedFavorites);
+        } else {
+          console.error("Parsed favorites from localStorage is not an array of string.");
+          setFavorites([]);
+        }
       } catch (e) {
         console.error("Failed to parse favorites from localStorage", e);
         setFavorites([]);
       }
-    }
-  }, []); // Empty dependency array means this runs only once on mount
+    } 
+  }, []);
 
-  // Save favorites to localStorage whenever the favorites state changes
   useEffect(() => {
     localStorage.setItem('weatherAppFavorites', JSON.stringify(favorites));
-  }, [favorites]); // Run this effect whenever favorites state changes
-
-
-  // --- The definitions of fetchSuggestions, fetchWeatherData, etc. are REMOVED from here ---
-  // They now live ONLY in src/api/weatherApi.ts
-
+  }, [favorites]);
 
   const handleSearch = async (city: string) => {
     setWeatherData(null);
@@ -56,175 +53,179 @@ function App() {
     setError(null);
     setIsLoading(true);
 
-    setLastSearchType('city');
+    setLocationSource('search');
     setLastSearchValue(city);
 
     try {
-        // Call the imported fetch function - weatherApi.ts should throw on failure
-        const currentWeather = await fetchWeatherData(city, units);
+      const currentWeather = await fetchWeatherData(city, units);
 
-        // If fetchWeatherData succeeded (didn't throw), set the data
-        setWeatherData(currentWeather);
+      setWeatherData(currentWeather);
 
-        // Fetch forecast data - weatherApi.ts should throw on failure
-        const forecast = await fetchForecastData(city, units);
-        setForecastData(forecast);
+      const forecast = await fetchForecastData(city, units);
 
-        // Set loading to false after both awaited operations complete successfully
-        setIsLoading(false);
+      setForecastData(forecast);
+
+      setIsLoading(false);
 
     } catch (error: any) {
-        // Catch errors thrown by fetchWeatherData or fetchForecastData (network or HTTP errors)
-        console.error("Error in handleSearch fetch flow:", error);
+      console.error("Error in handleSearch fetch flow:", error);
 
-        // Set error state based on the caught error
-        // The error object should have a message from weatherApi.ts's handleApiResponse
-        setError(error.message || 'An error occurred during the search.');
+      setError(error && typeof error.message === 'string' ? error.message : 'An unknown error occurred during the search.');
 
-        setIsLoading(false); // Ensure loading is false on catch
+      setIsLoading(false);
+      setLocationSource(null);
+      setLastSearchValue(null);
     }
   };
 
-
   const handleGeolocation = () => {
     if (navigator.geolocation) {
-        setWeatherData(null);
-        setForecastData(null);
-        setError(null);
-        setIsLoading(true);
+      setWeatherData(null);
+      setForecastData(null);
+      setError(null);
+      setIsLoading(true);
+
+      setLocationSource('geolocation');
 
       navigator.geolocation.getCurrentPosition(
-        async (position) => { // Make this callback async
+        async (position) => {
           const { latitude, longitude } = position.coords;
 
-          setLastSearchType('coords');
           setLastSearchValue({ lat: latitude, lon: longitude });
 
           try {
-              // Call the imported fetch function and await it - weatherApi.ts should throw on failure
-              const currentWeather = await fetchWeatherDataByCoords(latitude, longitude, units);
+            const currentWeather = await fetchWeatherDataByCoords(latitude, longitude, units);
 
-               // If fetchWeatherDataByCoords succeeded (didn't throw), set the data
-              setWeatherData(currentWeather);
+            setWeatherData(currentWeather);
 
-              // Call the imported fetch function and await it - weatherApi.ts should throw on failure
-              const forecast = await fetchForecastDataByCoords(latitude, longitude, units);
-              setForecastData(forecast);
+            const forecast = await fetchForecastDataByCoords(latitude, longitude, units);
+            setForecastData(forecast);
 
-              setIsLoading(false); // Set loading to false after success
-
+            setIsLoading(false);
           } catch (error: any) {
-               // Catch errors thrown by fetchWeatherDataByCoords or fetchForecastDataByCoords
-               console.error("Error in handleGeolocation fetch flow:", error);
-               // Set error state based on the caught error
-               setError(error.message || 'An error occurred while fetching location weather.');
-
-               setIsLoading(false); // Ensure loading is false on catch
+            console.error("Error in handleGeolocation fetch flow:", error);
+            setError(error && typeof error.message === 'string' ? error.message : 'An error occured while fetch location weatherData.');
+            setIsLoading(false);
+            setLocationSource(null);
+            setLastSearchValue(null);
           }
         },
-        (error) => {
-          console.error('Error getting location:', error);
-          setIsLoading(false);
-
-          // Provide more specific error messages based on geolocation error codes
-          let errorMessage = 'Could not retrieve your location.';
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = 'Location permission denied. Please enable location access in your browser settings to use this feature.';
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Location information is unavailable.';
-              break;
-            case error.TIMEOUT:
-              errorMessage = 'The request to get user location timed out.';
-              break;
-            default:
-              errorMessage = 'An unknown error occurred while retrieving your location.';
-              break;
-          }
-          setError(errorMessage); // Set the specific error message
-        }
+        (geoError: unknown) => { // Explicitly type the caught error as unknown
+                    console.error('Error getting location:', geoError); // Log the raw error
+                    setIsLoading(false); // Ensure loading is false
+          
+                    let errorMessage = 'Could not retrieve your location.'; // Default error message
+          
+                    // Safely determine the error message based on the type of geoError
+                    if (geoError instanceof Error) {
+                         // If it's a standard JavaScript Error object
+                         errorMessage = geoError.message; // Safely access the message
+                    } else if (geoError && typeof geoError === 'object' && 'code' in geoError) {
+                      // If it's a GeolocationPositionError or a similar object with a 'code' property
+                       // We can now safely access 'code' and optionally 'message'
+                       const geolocationError = geoError as { code: number; message?: string }; // Cast to an object with code and optional message for easier access
+          
+                      switch (geolocationError.code) { // Access the code safely
+                        case 1:
+                          errorMessage = 'Location permission denied. Please enable location access in your browser settings to use this feature.';
+                          break;
+                        case 2:
+                          errorMessage = 'Location information is unavailable.';
+                          break;
+                        case 3:
+                          errorMessage = 'The request to get user location timed out.';
+                          break;
+                        default:
+                          // For other codes, use the message property if available and is a string, otherwise use a generic message
+                          errorMessage = geolocationError.message && typeof geolocationError.message === 'string' ? `Geolocation error: ${geolocationError.message}` : 'An unknown error occurred while retrieving your location.';
+                          break;
+                      }
+                    } else if (geoError && typeof geoError === 'object' && 'message' in geoError && typeof (geoError as { message: unknown }).message === 'string') {
+                        // Fallback: Check if it's an object that just happens to have a string 'message' property
+                         errorMessage = `Geolocation error: ${(geoError as { message: string }).message}`;
+                    } else if (typeof geoError === 'string') { // Check if the error is just a string
+                         errorMessage = geoError;
+                    }
+                    // If none of the above conditions match, the initial 'Could not retrieve your location.' remains.
+          
+                    setError(errorMessage); // Set the determined error message in state
+          
+                    // Clear location source and value on geo error
+                    setLocationSource(null);
+                    setLastSearchValue(null);
+                  }
       );
     } else {
-      setError('Geolocation is not supported by your browser.');
+      console.error("Geolocation not supported by this browser.");
       setIsLoading(false);
+      setError('Geolocation is not supported by your browser.');
+      setLocationSource(null);
+      setLastSearchValue(null);
     }
   };
 
   const handleUnitChange = (newUnit: string) => {
     setUnits(newUnit);
 
-    // Re-trigger the last search action based on the last search type and value
-    if (lastSearchType === 'city' && typeof lastSearchValue === 'string') {
-      // Simply call handleSearch, which handles loading and error states
+    setWeatherData(null);
+    setForecastData(null);
+    setError(null);
+
+    if (locationSource === 'search' && typeof lastSearchValue === 'string' && lastSearchValue) {
       handleSearch(lastSearchValue);
-    } else if (lastSearchType === 'coords' && lastSearchValue && typeof lastSearchValue !== 'string') {
-      // For coordinates, replicate the successful fetch logic from handleGeolocation's try block
-      // Using a direct promise chain here
-      setIsLoading(true); // Indicate loading due to unit change re-fetch
-      setError(null); // Clear errors
+    } else if (locationSource === 'geolocation' && lastSearchValue && typeof lastSearchValue !== 'string') {
+      setIsLoading(true);
 
-      const coords = lastSearchValue as { lat: number; lon: number }; // Cast as we know the type
+      const coords = lastSearchValue as { lat: number; lon: number };
 
-      fetchWeatherDataByCoords(coords.lat, coords.lon, newUnit) // Pass newUnit - throws on failure
-          .then(weatherDataResult => {
-               // If fetchWeatherDataByCoords succeeded (didn't throw), set the data
-               setWeatherData(weatherDataResult);
-               // Fetch forecast after weather data is set - throws on failure
-               return fetchForecastDataByCoords(coords.lat, coords.lon, newUnit); // Pass newUnit
-          })
-          .then(() => {
-               // If fetchForecastDataByCoords succeeded, set loading to false
-               setIsLoading(false);
-          })
-          .catch(error => {
-               // Catch errors from fetchWeatherDataByCoords or fetchForecastDataByCoords
-               console.error("Error refetching on unit change:", error);
-               // Set error state based on the caught error
-               setError(error.message || 'An error occurred while updating units for location.');
-               setIsLoading(false);
-          });
-
+      fetchWeatherDataByCoords(coords.lat, coords.lon, newUnit)
+        .then(weatherDataResult => {
+          setWeatherData(weatherDataResult);
+          return fetchForecastDataByCoords(coords.lat, coords.lon, newUnit);
+        })
+        .then(forecastResult => {
+          setForecastData(forecastResult);
+          setIsLoading(false);
+        })
+        .catch(error => {
+          console.error("Error refetching on unit change:", error);
+          setError(error && typeof error.message === 'string' ? error.message : 'An error occurred while updating units for location.');
+          setIsLoading(false);
+        });
     } else {
-      // If no previous search, clear data and prompt user
       setWeatherData(null);
       setForecastData(null);
       setError("Units changed. Please search again or use your location.");
-      setIsLoading(false); // No fetch action here
+      setIsLoading(false);
     }
   };
 
-
   const addFavorite = (city: string) => {
-    if (!favorites.includes(city)) {
+    if (!favorites.some(fav => fav.toLowerCase() === city.toLowerCase())) {
       setFavorites([...favorites, city]);
     }
   };
 
   const removeFavorite = (city: string) => {
-    setFavorites(favorites.filter(fav => fav !== city));
+    setFavorites(favorites.filter(fav => fav.toLowerCase() !== city.toLowerCase()));
   };
-
 
   return (
     <div className="container">
       <h1>Weather App</h1>
-      {/* Pass the imported fetchSuggestions function to SearchBar */}
       <SearchBar
         onSearch={handleSearch}
         onUseLocation={handleGeolocation}
         onUnitChange={handleUnitChange}
         onFetchSuggestions={fetchSuggestions}
       />
-
-      {/* Display list of favorites */}
       {favorites.length > 0 && (
         <div className="favorites-list">
           <h4>Favorite Locations:</h4>
           <ul>
             {favorites.map(fav => (
               <li key={fav}>
-                <span onClick={() => handleSearch(fav)} className="favorite-city-name">{fav}</span>
+                <span onClick={() => handleSearch(fav)} className="favorite-city-name" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSearch(fav); }}}>{fav}</span>
                 <button onClick={() => removeFavorite(fav)} className="remove-favorite-button">x</button>
               </li>
             ))}
@@ -232,53 +233,46 @@ function App() {
         </div>
       )}
 
-      {/* Add favorite button next to currently displayed weather */}
-      {!isLoading && !error && weatherData && (
-          // Only show add button if the current location isn't already favorited
-          !favorites.includes(weatherData.name) && (
-             <button onClick={() => addFavorite(weatherData.name)} className="add-favorite-button">
-                 Add {weatherData.name} to Favorites
-             </button>
-          )
+      {/* 1. Loading State: Display spinner when loading */}
+      {!isLoading && !error && weatherData && locationSource === 'search' && (
+        !favorites.some(fav => fav.toLowerCase() === weatherData.name.toLowerCase()) && (
+          <button onClick={() => addFavorite(weatherData.name)} className="add-favorite-button">
+            Add {weatherData.name} to Favorites
+          </button>
+        )
       )}
 
-
-      {/* Conditional rendering based on state */}
-
-      {/* 1. Loading State */}
-      {isLoading && (
-          <div className="status-message loading-message">Loading weather data...</div>
-      )}
-
-      {/* 2. Error State (when not loading) */}
+      {/* 2. Error State: Display error message when not loading and error exists */}
       {!isLoading && error && (
-          <div className="status-message error-message">{error}</div>
+        <div className="status-message error-message">{error}</div>
       )}
 
-      {/* 3. Data Loaded State (when not loading and no error) */}
+      {/* 3. Data Loaded State: Display weather and forecast when not loading, no error and data is available */}
       {!isLoading && !error && weatherData && forecastData && (
         <>
-          {/* Add the location source message here */}
-          {lastSearchType === 'coords' && (
-            <div className="location-source-message">Showing weather for your current location:</div>
-          )}
-          {/* WeatherDisplay already shows city/country name */}
-          <WeatherDisplay weather={weatherData} error={error} units={units} />
-          <WeatherForecast forecast={forecastData} units={units} />
+          <WeatherDisplay
+            weatherData={weatherData}
+            units={units}
+            locationSource={locationSource}
+            searchCityValue={locationSource === 'search' ? (lastSearchValue as string | null) : null}
+          />
+
+          <WeatherForecast
+            forecast={forecastData}
+            units={units}
+          />
         </>
       )}
 
-       {/* 4. Initial State (when not loading, no error, no data, and no previous search attempt) */}
-       {!isLoading && !error && !weatherData && !forecastData && !lastSearchType && (
-         <div className="status-message initial-message">Enter a city or use your location to see the weather.</div>
-       )}
+      {/* 4. Initial State: Display welcome message when no loading, no error and no data */}
+      {!isLoading && !error && !weatherData && !forecastData && !locationSource && !lastSearchValue && (
+        <div className="status-message initial-message">Enter a city or use your location to see the weather.</div>
+      )}
 
-        {/* 5. Handle case where weatherData exists but forecastData does not (less likely but possible API issue, when not loading) */}
-        {/* This state check might become redundant if fetchForecastData always throws on failure and errors are handled correctly */}
-        {!isLoading && !error && weatherData && !forecastData && lastSearchType && (
-             <div className="status-message error-message">Could not load forecast data.</div>
-        )}
-
+      {/* 5. Handle case where weatherData exists but forecastData does not (less likely now with improved error handling) */}
+      {!isLoading && !error && weatherData && !forecastData && locationSource && (
+        <div className="status-message error-message">Could not load forecast data.</div>
+      )}
     </div>
   );
 }
