@@ -336,8 +336,8 @@ padding-left: 5px;
 .weather-details {
   display: flex;
   align-items: center;
-  gap: 30px; /* Increased gap */
-  margin-bottom: 25px; /* More space below details */
+  gap: 50px; /* Increased gap */
+  margin-bottom: 35px; /* More space below details */
   flex-wrap: wrap;
   align-items: center; /* Ensure items align vertically */
 }
@@ -377,11 +377,11 @@ padding-left: 5px;
 
 .sun-times {
   margin-top: 20px; /* Increased margin */
-  margin-bottom: 25px; /* Increased margin */
+  margin-bottom: 35px; /* Increased margin */
   padding-top: 20px; /* Increased padding */
   border-top: 1px dashed var(--color-border-light); /* Use variable */
   display: flex;
-  gap: 30px; /* Increased gap */
+  gap: 50px; /* Increased gap */
   flex-wrap: wrap;
   /* Ensure items align vertically */
   align-items: center;
@@ -528,7 +528,7 @@ padding-left: 5px;
 .forecast-item {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 35px;
   padding: 12px 0;
   border-bottom: 1px dashed var(--color-border-light); /* Use variable */
   flex-wrap: wrap;
@@ -789,7 +789,7 @@ padding-left: 5px;
   .forecast-item {
       flex-direction: column;
       align-items: flex-start;
-      gap: 8px;
+      gap: 15px;
       padding: 8px 0;
   }
   .forecast-item p,
@@ -931,7 +931,7 @@ padding-left: 5px;
       padding: 20px 25px; /* Adjust padding */
  }
  .forecast-item {
-     gap: 25px; /* Adjust gap */
+     gap: 30px; /* Adjust gap */
      padding: 15px 0; /* Adjust padding */
  }
  .forecast-item p {
