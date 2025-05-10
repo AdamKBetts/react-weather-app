@@ -111,7 +111,6 @@ h1 {
 }
 
 .search-bar input[type="text"]:focus {
-  outline: none;
   border-color: var(--color-primary-blue); /* Use variable */
   box-shadow: 0 0 2px var(--color-primary-blue); /* Use primary blue for shadow */
 }
@@ -171,6 +170,7 @@ h1 {
 .suggestions-list li:focus {
   outline: 2px solid var(--color-primary-blue);
   background-color: var(--color-light-blue);
+  outline-offset: 2px;
 }
 
 .suggestions-list li:last-child {
